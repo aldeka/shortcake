@@ -14,15 +14,17 @@ class SimpleTest(TestCase):
         
 class ShurlCreationTest(TestCase):
     def setUp(self):
-        s = Shurl(url='http://www.test.com')
+        d = Domain(domain='http://www.test.com')
+        d.save()
+        s = Shurl(url='http://www.test.com/stuff/',domain=d)
         s.save()
         s.assign_short_suffix()
         
         # populate database with a lot of shurls
         i = 0
         while i < 66:
-            url = 'http://www.testing.com/' + str(i) + '/'
-            a = Shurl(url=url)
+            url = 'http://www.test.com/' + str(i) + '/'
+            a = Shurl(url=url,domain=d)
             a.save()
             a.assign_short_suffix()
             i += 1
@@ -39,7 +41,7 @@ class ShurlCreationTest(TestCase):
         self.assertEqual(yet_another_s.short_url(),'cak.es/_')
         
         # test duplication handling code
-        t = Shurl.get_or_create('http://www.test.com')
+        t = Shurl.get_or_create('http://www.test.com/stuff/')
         self.assertEqual(t.pk,1)
         
 class Base64Test(TestCase):
@@ -52,11 +54,12 @@ class Base64Test(TestCase):
         
 class LoggingTest(TestCase):
     def setUp(self):
-        s = Shurl(url='http://www.test.com')
+        d = Domain(domain='http://www.test.com')
+        d.save()
+        s = Shurl(url='http://www.test.com', domain=d)
         s.save()
         s.assign_short_suffix()
         
-        d = Domain.get_or_create(s.url)
         
         m = MonthLog(domain=d)
         m.save()
@@ -89,11 +92,13 @@ class LoggingTest(TestCase):
         
 class DomainTest(TestCase):
     def setUp(self):
-        s = Shurl(url='http://www.test.com/a/b/c/')
+        d = Domain(domain='http://www.test.com')
+        d.save()
+        s = Shurl(url='http://www.test.com/a/b/c/', domain=d)
         s.save()
         s.assign_short_suffix()
         
-        t = Shurl(url='http://www.test.com/another_dir/')
+        t = Shurl(url='http://www.test.com/another_dir/', domain=d)
         t.save()
         t.assign_short_suffix()
         

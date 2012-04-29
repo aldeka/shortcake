@@ -56,8 +56,7 @@ class Shurl(models.Model):
     short_suffix = models.CharField(max_length=20,unique=True,**optional)
     access_count = models.IntegerField(default=0)
     creation_time = models.DateTimeField(auto_now_add=True)
-    # this should probably have an explicit ForeignKey relationship to a domain, but it'd have to be done w. a custom __init__ or something...
-    # for now, it's easy to grab the domain with Domain.get_or_create()
+    domain = models.ForeignKey(Domain)
     
     def __unicode__(self):
         return self.url
@@ -90,7 +89,8 @@ class Shurl(models.Model):
         try:
             s = Shurl.objects.get(url=url)
         except Shurl.DoesNotExist:
-            s = Shurl(url=url)
+            d = Domain.get_or_create(url)
+            s = Shurl(url=url, domain=d)
             s.save()
             s.assign_short_suffix()
         return s
@@ -101,11 +101,10 @@ class Shurl(models.Model):
         self.access_count += 1
         self.save()
         
-        d = Domain.get_or_create(self.url)
-        d.access_count += 1
-        d.save()
+        self.domain.access_count += 1
+        self.domain.save()
         
-        log = d.get_or_create_log(first_of_the_month())
+        log = self.domain.get_or_create_log(first_of_the_month())
         log.access_count += 1
         log.save()
         return self.url
