@@ -79,7 +79,7 @@ class MonthLog(models.Model):
         return 'Log for ' + str(self.month) + ' of ' + self.shurl.short_suffix
         
     class Meta:
-        ordering = ['creation_date']
+        ordering = ['month']
 # -*-*-*-*-*- 
 
 # Based on Greg Jorgenson's code snippet at http://code.activestate.com/recipes/65212/#c4
