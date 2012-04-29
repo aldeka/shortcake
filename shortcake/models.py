@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import ModelForm
 import datetime
 import string
 
@@ -10,7 +11,7 @@ def first_of_the_month(date=datetime.date.today()):
 class Shurl(models.Model):
     '''Model for a shortened URL.
     "No I'm not joking, and don't call me Shirley!"'''
-    url = models.URLField(unique=True)
+    url = models.URLField(verbose_name="URL")
     short_suffix = models.CharField(max_length=20,unique=True,**optional)
     access_count = models.IntegerField(default=0)
     creation_time = models.DateTimeField(auto_now_add=True)
@@ -30,7 +31,7 @@ class Shurl(models.Model):
         
     def assign_short_suffix(self):
         '''Assigns shortener suffix to this short url. This should always be run after the shurl is first created and saved.'''
-        self.short_suffix = shortening_algo(self.pk)
+        self.short_suffix = Shurl.shortening_algo(self.pk)
         self.save()
         
     @staticmethod
@@ -40,10 +41,13 @@ class Shurl(models.Model):
     @staticmethod
     def is_nonunique(url):
         '''Tests to see if there's already a short url for this url. If so, returns the other object. If not, returns False'''
-        # TODO: make this cleverer about duplicate-detection -- add or strip trailing slashes, #s, ? arguments, etcetera
+        # Strips trailing slashes and anything after them
+        # TODO: make this cleverer about duplicate-detection -- #s, ? arguments, www v. no www, etcetera
         # Even better: include function to identify common other url shortener services' urls, follow where they lead, and return the "real" url that they lead to. t.co, I'm looking at you...
         try:
-            s = Shurl.objects.get(url=url)
+            if url[-1] == '/':
+                url = url[:len(url)-1]
+            s = Shurl.objects.get(url='http://' + url + '/')
             return s
         except:
             return False
@@ -57,6 +61,11 @@ class Shurl(models.Model):
         log.access_count += 1
         log.save()
         return self.url
+        
+class ShurlForm(ModelForm):
+    class Meta:
+        model=Shurl
+        fields = ('url',)
         
 class MonthLog(models.Model):
     '''Model for a log of accesses for a given shortened url in a given month.'''

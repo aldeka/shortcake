@@ -1,0 +1,9 @@
+{% extends "index.html" %}
+
+{% block contents %}
+<p>Here's your shortened URL:</p>
+
+<a href="{{ shurl.short_url }}">{{ shurl.short_url }}</a>
+
+<p><a href="/">Back</a></p>
+{% endblock %}
