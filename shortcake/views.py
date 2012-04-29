@@ -31,32 +31,26 @@ def latest(request,count=100):
     return HttpResponse(response)
     
 def top_ten(request):
-    '''Return the 10 short urls with the most hits this month'''
-    # note: if fewer than ten urls have had *any* hits this month, it may return fewer than ten
+    '''Return the 10 domains with the most hits this month'''
+    # note: if fewer than ten domains have had *any* hits this month, it may return fewer than ten
     this_month_logs = MonthLog.objects.filter(month=first_of_the_month())
     popular_logs = this_month_logs.order_by('-access_count')[:10]
-    shurls = []
+    domains = []
     # this is kind of terrible, but whatev, it's only ten items
     for log in popular_logs:
-        shurls.append(log.shurl)
-    response = json_serializer.serialize(shurls, ensure_ascii=False)
+        domains.append(log.domain)
+    response = json_serializer.serialize(domains, ensure_ascii=False)
     return HttpResponse(response)
     
 def forward(request,short_suffix):
     '''Given the suffix of a short url, forwards us on to that short url's real url'''
     n = convert_from_base_64(short_suffix)
     shurl = get_object_or_404(Shurl,pk=n)
-    # if the shurl hasn't had any hits yet this month, we'll need to create a MonthLog for it
-    try:
-        m = shurl.monthlog_set.filter(month=first_of_the_month())[0]
-    except:
-        m = MonthLog(shurl=shurl)
-        m.save()
     # get_url() updates the necessary access_counts and returns the url
     return redirect(shurl.get_url())
     
 def shurl_stats(request,short_suffix):
-    '''Returns how many times a given short URL has been accessed'''
+    '''Returns how many times a given short URL has been accessed -- human readable'''
     n = convert_from_base_64(short_suffix)
     shurl = get_object_or_404(Shurl,pk=n)
     return HttpResponse('URL ' + short_suffix + ' has been accessed ' + str(shurl.access_count) + ' time(s).')
@@ -68,4 +62,4 @@ def shurl_accesses(request,short_suffix):
     return HttpResponse(str(shurl.access_count))
     
 def api_documentation(request):
-    return HttpResponse('<h1>Welcome to the shortcake API!</h1> <ul> <li>popular/ --> up to ten most popular (in terms of # of accesses) urls this month. May return fewer than 10 if fewer than 10 urls have any accesses</li> <li>latest/ --> last 100 shortened urls</li> <li>latest/(n) --> last n shortened urls</li> <li>(shortener)/accesses/ --> How many times the given shortener has been accessed</li></ul>')
+    return HttpResponse('<h1>Welcome to the shortcake API!</h1> <ul> <li>popular/ --> Up to ten most popular (in terms of # of accesses) shortened domains this month. May return fewer than 10 if fewer than 10 domains have had any accesses!</li> <li>latest/ --> Last 100 shortened urls.</li> <li>latest/(n) --> Last n shortened urls.</li> <li>(shortener)/accesses/ --> How many times the given shortener has been accessed.</li></ul>')

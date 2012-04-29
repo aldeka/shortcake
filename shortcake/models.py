@@ -12,6 +12,9 @@ class Domain(models.Model):
     domain = models.URLField(unique=True)
     access_count = models.IntegerField(default=0)
     
+    def __unicode__(self):
+        return self.domain
+    
     def get_or_create_log(self,month):
         ''' returns a MonthLog object, either old or freshly created, for the given first-of-the-month date '''
         try:
@@ -21,19 +24,20 @@ class Domain(models.Model):
             log.save()
         return log
     
-    @classmethod
+    @staticmethod
     def extract_domain_from_url(url):
         ''' Takes a url, returns the url's domain '''
         # take apart the domain
         domain_parts = url.split('.')
         # get the tld out of the last period-separated chunk
-        tail_parts = domain_parts[-1].split('/',1)
+        tail = domain_parts.pop()
+        tail_parts = tail.split('/',1)
         tld = tail_parts[0]
         domain_parts.append(tld)
         # put the string back together
         return string.join(domain_parts, '.')
     
-    @classmethod
+    @staticmethod
     def get_or_create(url):
         '''Returns a Domain object, either old or freshly created, based on a url'''
         domain = Domain.extract_domain_from_url(url)
@@ -51,9 +55,6 @@ class Shurl(models.Model):
     short_suffix = models.CharField(max_length=20,unique=True,**optional)
     access_count = models.IntegerField(default=0)
     creation_time = models.DateTimeField(auto_now_add=True)
-    # this really shouldn't be optional
-    # for now, it gets filled in for sure the first time get_url is called
-    domain = models.ForeignKey(Domain, **optional)
     
     def __unicode__(self):
         return self.url
@@ -91,17 +92,12 @@ class Shurl(models.Model):
             return False
     
     def get_url(self):
-        '''Ups the access_count of the shurl and the relevant month's log before returning the url. 
+        '''Ups the access_count of the shurl, the shurl's domain, and the relevant month's log before returning the url. 
         You probably want to use this method instead of accessing the url directly!'''
         self.access_count += 1
         self.save()
         
-        try:
-            d = self.domain
-        except:
-            self.domain = Domain.get_or_create(self.url)
-            self.save()
-            d = self.domain
+        d = Domain.get_or_create(self.url)
         d.access_count += 1
         d.save()
         
@@ -123,7 +119,7 @@ class MonthLog(models.Model):
     access_count = models.IntegerField(default=0)
         
     def __unicode__(self):
-        return 'Log for ' + str(self.month) + ' of ' + self.domain
+        return 'Log for ' + str(self.month) + ' of ' + self.domain.domain
         
     class Meta:
         ordering = ['month']
