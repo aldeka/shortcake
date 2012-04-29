@@ -56,9 +56,11 @@ class Shurl(models.Model):
         You probably want to use this method instead of accessing the url directly!'''
         self.access_count += 1
         self.save()
+        print "Incremented shurl access count"
         log = self.monthlog_set.get(month=first_of_the_month())
         log.access_count += 1
         log.save()
+        print "Incremented log access count for month " + str(log.month)
         return self.url
         
 class ShurlForm(ModelForm):
