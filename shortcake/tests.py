@@ -14,7 +14,6 @@ class SimpleTest(TestCase):
         
 class ShurlCreationTest(TestCase):
     def setUp(self):
-        self.client = Client()
         s = Shurl(url='http://www.test.com')
         s.save()
         s.assign_short_suffix()
@@ -39,6 +38,10 @@ class ShurlCreationTest(TestCase):
         yet_another_s = Shurl.objects.get(pk=63)
         self.assertEqual(yet_another_s.short_url(),'cak.es/_')
         
+        # test duplication handling code
+        t = Shurl.get_or_create('http://www.test.com')
+        self.assertEqual(t.pk,1)
+        
 class Base64Test(TestCase):
     def test_shortening_algorithm(self):
         self.assertEqual('9',Shurl.shortening_algo(9))
@@ -49,7 +52,6 @@ class Base64Test(TestCase):
         
 class LoggingTest(TestCase):
     def setUp(self):
-        self.client = Client()
         s = Shurl(url='http://www.test.com')
         s.save()
         s.assign_short_suffix()
@@ -87,7 +89,6 @@ class LoggingTest(TestCase):
         
 class DomainTest(TestCase):
     def setUp(self):
-        self.client = Client()
         s = Shurl(url='http://www.test.com/a/b/c/')
         s.save()
         s.assign_short_suffix()

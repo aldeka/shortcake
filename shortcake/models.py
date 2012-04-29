@@ -1,5 +1,5 @@
 from django.db import models
-from django.forms import ModelForm
+from django import forms
 import datetime
 import string
 
@@ -52,7 +52,7 @@ class Domain(models.Model):
 class Shurl(models.Model):
     '''Model for a shortened URL.
     "No I'm not joking, and don't call me Shirley!"'''
-    url = models.URLField(unique=True,verbose_name="URL")
+    url = models.URLField(verbose_name="URL")
     short_suffix = models.CharField(max_length=20,unique=True,**optional)
     access_count = models.IntegerField(default=0)
     creation_time = models.DateTimeField(auto_now_add=True)
@@ -83,17 +83,17 @@ class Shurl(models.Model):
         return convert_to_base_64(n)
     
     @staticmethod
-    def is_nonunique(url):
-        '''Tests to see if there's already a short url for this url. If so, returns the other object. If not, returns False'''
+    def get_or_create(url):
+        '''Returns a Shurl object, either old or freshly created, based on a url'''
         # TODO: make this cleverer about duplicate-detection -- #s, ? arguments, www v. no www, etcetera
         # Even better: include function to identify common other url shortener services' urls, follow where they lead, and return the "real" url that they lead to. t.co, I'm looking at you...
         try:
-            if url[-1] == '/':
-                url = url[:len(url)-1]
-            s = Shurl.objects.get(url='http://' + url + '/')
-            return s
+            s = Shurl.objects.get(url=url)
         except Shurl.DoesNotExist:
-            return False
+            s = Shurl(url=url)
+            s.save()
+            s.assign_short_suffix()
+        return s
     
     def get_url(self):
         '''Ups the access_count of the shurl, the shurl's domain, and the relevant month's log before returning the url. 
@@ -110,11 +110,9 @@ class Shurl(models.Model):
         log.save()
         return self.url
         
-class ShurlForm(ModelForm):
+class ShurlForm(forms.Form):
     '''Form for making a new shortened URL'''
-    class Meta:
-        model=Shurl
-        fields = ('url',)
+    url = forms.URLField()
         
 class MonthLog(models.Model):
     '''Model for a log of accesses for a given domain in a given month.'''

@@ -17,10 +17,9 @@ def home(request):
     else:
         # handle post from form
         form = ShurlForm(request.POST)
-        shurl = Shurl.is_nonunique(request.POST['url'])
-        if not shurl:
-            shurl = form.save()
-            shurl.assign_short_suffix()
+        form.is_valid()
+        # get_or_create does dup detection for us
+        shurl = Shurl.get_or_create(form.cleaned_data['url'])
         return render_to_response('thanks.html', 
                                  {'shurl':shurl,},
                                  context_instance=RequestContext(request))
