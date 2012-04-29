@@ -70,6 +70,9 @@ class LoggingTest(TestCase):
         self.assertEqual(0,m.access_count)
         
         url = s.get_url()
+        # re-pull
+        s = Shurl.objects.latest()
+        m = s.monthlog_set.get(month=first_of_the_month())
         
         self.assertEqual(url,s.url)
         self.assertEqual(1,s.access_count)
