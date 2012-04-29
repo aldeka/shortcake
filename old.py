@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+# pre-Django pseudocode / notes -- not used for anything now!
+
 import datetime
 
 # this is bad and evil and what I'm using instead of a database, for now
