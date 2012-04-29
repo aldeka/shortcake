@@ -1,9 +1,22 @@
 {% extends "index.html" %}
 
 {% block contents %}
+<pre>
+             __.......__
+        ,-"``           ``"-.
+        |;------.-'      _.-'\
+        ||______|`  ' ' `    |
+        ||------|            |
+       _;|______|            |_
+     (```"""""""|            |``)
+     \'._       '-.........-'_.'/
+      '._`""===........===""`_.'
+         ``"""=========="""``
+
+</pre>
 <p>Here's your shortened URL:</p>
 
-<a href="{{ shurl.short_url }}">{{ shurl.short_url }}</a>
+<a href="{{ shurl.short_suffix }}">{{ shurl.short_url }}</a>
 
 <p><a href="/">Back</a></p>
 {% endblock %}

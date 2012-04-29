@@ -46,10 +46,17 @@ def forward(request,short_suffix):
     '''Given the suffix of a short url, forwards us on to that short url's real url'''
     n = convert_from_base_64(short_suffix)
     shurl = get_object_or_404(Shurl,pk=n)
+    # if the shurl hasn't had any hits yet this month, we'll need to create a MonthLog for it
+    try:
+        m = shurl.monthlog_set.filter(month=first_of_the_month())[0]
+    except:
+        m = MonthLog(shurl=shurl)
+        m.save()
+    # get_url() updates the necessary access_counts and returns the url
     return redirect(shurl.get_url())
     
 def shurl_stats(request,short_suffix):
     '''Returns how many times a given short URL has been accessed'''
     n = convert_from_base_64(short_suffix)
     shurl = get_object_or_404(Shurl,pk=n)
-    return HttpResponse('URL ' + short_suffix + ' has been accessed ' + shurl.access_count + ' time(s).')
+    return HttpResponse('URL ' + short_suffix + ' has been accessed ' + str(shurl.access_count) + ' time(s).')

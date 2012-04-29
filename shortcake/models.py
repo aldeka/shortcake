@@ -26,7 +26,7 @@ class Shurl(models.Model):
     def short_url(self):
         '''Returns shortened version of url.'''
         # I'll probably have to change the shortener root for testing purposes
-        root = 'cris.co/'
+        root = 'cak.es/'
         return root + self.short_suffix
         
     def assign_short_suffix(self):
@@ -41,7 +41,6 @@ class Shurl(models.Model):
     @staticmethod
     def is_nonunique(url):
         '''Tests to see if there's already a short url for this url. If so, returns the other object. If not, returns False'''
-        # Strips trailing slashes and anything after them
         # TODO: make this cleverer about duplicate-detection -- #s, ? arguments, www v. no www, etcetera
         # Even better: include function to identify common other url shortener services' urls, follow where they lead, and return the "real" url that they lead to. t.co, I'm looking at you...
         try:
