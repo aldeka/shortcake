@@ -7,8 +7,11 @@ from django.conf.urls.defaults import patterns, include, url
 urlpatterns = patterns('',
     # Examples:
     url(r'^$', 'shortcake.views.home', name='home'),
+    url(r'^api/$','shortcake.views.api_documentation'),
+    url(r'^api/latest/$', 'shortcake.views.latest', name='latest'),
     url(r'^api/latest/(?P<count>\d+)/$', 'shortcake.views.latest', name='latest'),
     url(r'^api/popular/$', 'shortcake.views.top_ten', name='top_ten'),
+    url(r'^api/(?P<short_suffix>.+)/accesses/$', 'shortcake.views.shurl_accesses', name='shurl_accesses'),
     url(r'^api/(?P<short_suffix>.+)/stats/$', 'shortcake.views.shurl_stats', name='shurl_stats'),
     # dangerous: this matches everything!
     url(r'^api/(?P<short_suffix>.+)/$', 'shortcake.views.forward', name='forward'),

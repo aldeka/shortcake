@@ -25,7 +25,7 @@ def home(request):
 
     return render('index.html')
     
-def latest(request,count):
+def latest(request,count=100):
     '''Returns the count'th most recent short urls'''
     response = json_serializer.serialize(Shurl.objects.all()[:count], ensure_ascii=False)
     return HttpResponse(response)
@@ -60,3 +60,12 @@ def shurl_stats(request,short_suffix):
     n = convert_from_base_64(short_suffix)
     shurl = get_object_or_404(Shurl,pk=n)
     return HttpResponse('URL ' + short_suffix + ' has been accessed ' + str(shurl.access_count) + ' time(s).')
+    
+def shurl_accesses(request,short_suffix):
+    '''Returns how many times a given short URL has been accessed'''
+    n = convert_from_base_64(short_suffix)
+    shurl = get_object_or_404(Shurl,pk=n)
+    return HttpResponse(str(shurl.access_count))
+    
+def api_documentation(request):
+    return HttpResponse('<h1>Welcome to the shortcake API!</h1> <ul> <li>popular/ --> up to ten most popular (in terms of # of accesses) urls this month. May return fewer than 10 if fewer than 10 urls have any accesses</li> <li>latest/ --> last 100 shortened urls</li> <li>latest/(n) --> last n shortened urls</li> <li>(shortener)/accesses/ --> How many times the given shortener has been accessed</li></ul>')
