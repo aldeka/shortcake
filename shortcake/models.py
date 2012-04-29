@@ -7,6 +7,42 @@ optional = dict(blank=True, null=True)
 
 def first_of_the_month(date=datetime.date.today()):
     return datetime.date(date.year, date.month, 1)
+    
+class Domain(models.Model):
+    domain = models.URLField(unique=True)
+    access_count = models.IntegerField(default=0)
+    
+    def get_or_create_log(self,month):
+        ''' returns a MonthLog object, either old or freshly created, for the given first-of-the-month date '''
+        try:
+            log = self.monthlog_set.get(month=month)
+        except:
+            log = MonthLog(domain=self,month=month)
+            log.save()
+        return log
+    
+    @classmethod
+    def extract_domain_from_url(url):
+        ''' Takes a url, returns the url's domain '''
+        # take apart the domain
+        domain_parts = url.split('.')
+        # get the tld out of the last period-separated chunk
+        tail_parts = domain_parts[-1].split('/',1)
+        tld = tail_parts[0]
+        domain_parts.append(tld)
+        # put the string back together
+        return string.join(domain_parts, '.')
+    
+    @classmethod
+    def get_or_create(url):
+        '''Returns a Domain object, either old or freshly created, based on a url'''
+        domain = Domain.extract_domain_from_url(url)
+        try:
+            d = Domain.objects.get(domain=domain)
+        except:
+            d = Domain(domain=domain)
+            d.save()
+        return d
 
 class Shurl(models.Model):
     '''Model for a shortened URL.
@@ -15,6 +51,9 @@ class Shurl(models.Model):
     short_suffix = models.CharField(max_length=20,unique=True,**optional)
     access_count = models.IntegerField(default=0)
     creation_time = models.DateTimeField(auto_now_add=True)
+    # this really shouldn't be optional
+    # for now, it gets filled in for sure the first time get_url is called
+    domain = models.ForeignKey(Domain, **optional)
     
     def __unicode__(self):
         return self.url
@@ -56,11 +95,19 @@ class Shurl(models.Model):
         You probably want to use this method instead of accessing the url directly!'''
         self.access_count += 1
         self.save()
-        print "Incremented shurl access count"
-        log = self.monthlog_set.get(month=first_of_the_month())
+        
+        try:
+            d = self.domain
+        except:
+            self.domain = Domain.get_or_create(self.url)
+            self.save()
+            d = self.domain
+        d.access_count += 1
+        d.save()
+        
+        log = d.get_or_create_log(first_of_the_month())
         log.access_count += 1
         log.save()
-        print "Incremented log access count for month " + str(log.month)
         return self.url
         
 class ShurlForm(ModelForm):
@@ -69,14 +116,14 @@ class ShurlForm(ModelForm):
         fields = ('url',)
         
 class MonthLog(models.Model):
-    '''Model for a log of accesses for a given shortened url in a given month.'''
-    shurl = models.ForeignKey(Shurl)
+    '''Model for a log of accesses for a given domain in a given month.'''
+    domain = models.ForeignKey(Domain)
     month = models.DateField(default=first_of_the_month())
     creation_date = models.DateField(auto_now_add=True)
     access_count = models.IntegerField(default=0)
         
     def __unicode__(self):
-        return 'Log for ' + str(self.month) + ' of ' + self.shurl.short_suffix
+        return 'Log for ' + str(self.month) + ' of ' + self.domain
         
     class Meta:
         ordering = ['month']
