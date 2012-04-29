@@ -8,20 +8,22 @@ from django.core import serializers
 json_serializer=serializers.get_serializer("json")()
 
 def home(request):
-    '''TODO: This will have a form for submitting a URL to be shortened and handler for the POST thereof'''
+    '''View with a form for submitting a URL to be shortened and saving the shortened URL upon POSTing'''
     if request.method == 'GET':
         form = ShurlForm()
-        return render_to_response('index.html', {'form':form,}, context_instance=RequestContext(request))
+        return render_to_response('index.html', 
+                                 {'form':form,},
+                                 context_instance=RequestContext(request))
     else:
         # handle post from form
         form = ShurlForm(request.POST)
-        print request.POST['url']
         shurl = Shurl.is_nonunique(request.POST['url'])
-        print shurl
         if not shurl:
             shurl = form.save()
             shurl.assign_short_suffix()
-        return render_to_response('thanks.html', {'shurl':shurl,}, context_instance=RequestContext(request))
+        return render_to_response('thanks.html', 
+                                 {'shurl':shurl,},
+                                 context_instance=RequestContext(request))
 
     return render('index.html')
     
@@ -31,12 +33,11 @@ def latest(request,count=100):
     return HttpResponse(response)
     
 def top_ten(request):
-    '''Return the 10 domains with the most hits this month'''
-    # note: if fewer than ten domains have had *any* hits this month, it may return fewer than ten
+    '''Return the 10 domains with the most hits this month. May return fewer than ten, because it won't return domains with zero hits.'''
     this_month_logs = MonthLog.objects.filter(month=first_of_the_month())
     popular_logs = this_month_logs.order_by('-access_count')[:10]
     domains = []
-    # this is kind of terrible, but whatev, it's only ten items
+    # this is kind of terrible, but hey, it's only ten items
     for log in popular_logs:
         domains.append(log.domain)
     response = json_serializer.serialize(domains, ensure_ascii=False)
@@ -46,7 +47,7 @@ def forward(request,short_suffix):
     '''Given the suffix of a short url, forwards us on to that short url's real url'''
     n = convert_from_base_64(short_suffix)
     shurl = get_object_or_404(Shurl,pk=n)
-    # get_url() updates the necessary access_counts and returns the url
+    # get_url() updates the appropriate access_counts and returns the url
     return redirect(shurl.get_url())
     
 def shurl_stats(request,short_suffix):

@@ -9,6 +9,7 @@ def first_of_the_month(date=datetime.date.today()):
     return datetime.date(date.year, date.month, 1)
     
 class Domain(models.Model):
+    '''Model for a domain name'''
     domain = models.URLField(unique=True)
     access_count = models.IntegerField(default=0)
     
@@ -55,6 +56,8 @@ class Shurl(models.Model):
     short_suffix = models.CharField(max_length=20,unique=True,**optional)
     access_count = models.IntegerField(default=0)
     creation_time = models.DateTimeField(auto_now_add=True)
+    # this should probably have an explicit ForeignKey relationship to a domain, but it'd have to be done w. a custom __init__ or something...
+    # for now, it's easy to grab the domain with Domain.get_or_create()
     
     def __unicode__(self):
         return self.url
@@ -76,6 +79,7 @@ class Shurl(models.Model):
         
     @staticmethod
     def shortening_algo(n):
+        '''The url shortening algorithm goes here'''
         return convert_to_base_64(n)
     
     @staticmethod
@@ -107,6 +111,7 @@ class Shurl(models.Model):
         return self.url
         
 class ShurlForm(ModelForm):
+    '''Form for making a new shortened URL'''
     class Meta:
         model=Shurl
         fields = ('url',)
@@ -123,6 +128,7 @@ class MonthLog(models.Model):
         
     class Meta:
         ordering = ['month']
+        
 # -*-*-*-*-*- 
 
 # Based on Greg Jorgenson's code snippet at http://code.activestate.com/recipes/65212/#c4
