@@ -19,7 +19,7 @@ class Domain(models.Model):
         ''' returns a MonthLog object, either old or freshly created, for the given first-of-the-month date '''
         try:
             log = self.monthlog_set.get(month=month)
-        except:
+        except DoesNotExist:
             log = MonthLog(domain=self,month=month)
             log.save()
         return log
@@ -43,7 +43,7 @@ class Domain(models.Model):
         domain = Domain.extract_domain_from_url(url)
         try:
             d = Domain.objects.get(domain=domain)
-        except:
+        except DoesNotExist:
             d = Domain(domain=domain)
             d.save()
         return d
@@ -88,7 +88,7 @@ class Shurl(models.Model):
                 url = url[:len(url)-1]
             s = Shurl.objects.get(url='http://' + url + '/')
             return s
-        except:
+        except DoesNotExist:
             return False
     
     def get_url(self):
