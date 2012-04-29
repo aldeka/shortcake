@@ -7,25 +7,32 @@ import datetime
 # maps url strings to shurl objects
 global_urls_table = dict()
 
-class shurl():
+class Shurl():
     def __init__(self, url):
         self.url = url
         self.shurl = shorten_url_string(url)
         self.access_count = 0
-        self.created_at = datetime.datetime.now()
-        # dictionary mapping months (via datetime) to hits that month
-        self.popularity_chart = dict((self.first_day_of_this_month(datetime.date.today()), 0))
+        self.creation_time = datetime.datetime.now()
         # add self to global table
         global_urls_table[url] = self
-        
-    @classmethod
-    def first_day_of_this_month(date):
-        return datetime.date(date.year, date.month, 1)
     
     def add_impression(self):
         '''Adds one to the impression count both globally and by month. You almost certainly want to use this method rather than updating the attributes directly!'''
         self.access_count += 1
-        self.popularity_chart[first_day_of_this_month(datetime.date.today())] += 1
+        self.save()
+        record = self.monthly_hits_record_set.get(month = monthly_hits_record.first_of_this_month()))
+        record.access_count += 1
+        record.save()
+        
+class Monthly_Hits_Record():
+    def __init__(self, shurl):
+        self.month = first_of_this_month()
+        self.shurl = shurl
+        self.access_count = 0
+        
+    @classmethod
+    def first_of_this_month(date=datetime.date.today()):
+        return datetime.date(date.year, date.month, 1)
 
 def shorten_url_string(url):
     '''Takes a url, returns shortened version'''
@@ -56,6 +63,7 @@ def create_shortened_url(url):
 
 def last_100_urls():
     # sort and slice
+    # Shurl.objects.all().order_by('-creation_time')[:100]
     pass
 
 # Retrieve top 10 most popular shortened urls in the last month
@@ -64,6 +72,7 @@ def last_100_urls():
 
 def popular_urls(date):
     # sort by popularity_chart[datetime.date(date.year, date.month, 1)], slice[:10]
+    # Shurl.objects.annotate(popularity_this_month=Count(monthly_hits_record_for_this_month.access_count)).order_by('-popularity_this_month')
     pass
 
 # How many times a given shortened URL has been accessed
