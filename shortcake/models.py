@@ -76,7 +76,7 @@ class MonthLog(models.Model):
     access_count = models.IntegerField(default=0)
         
     def __unicode__(self):
-        return 'Log for ' + month(self) + ' of ' + self.shurl.short_suffix
+        return 'Log for ' + str(self.month) + ' of ' + self.shurl.short_suffix
         
     class Meta:
         ordering = ['creation_date']
