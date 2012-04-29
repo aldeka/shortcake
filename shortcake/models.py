@@ -11,7 +11,7 @@ def first_of_the_month(date=datetime.date.today()):
 class Shurl(models.Model):
     '''Model for a shortened URL.
     "No I'm not joking, and don't call me Shirley!"'''
-    url = models.URLField(verbose_name="URL")
+    url = models.URLField(unique=True,verbose_name="URL")
     short_suffix = models.CharField(max_length=20,unique=True,**optional)
     access_count = models.IntegerField(default=0)
     creation_time = models.DateTimeField(auto_now_add=True)
